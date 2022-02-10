@@ -7,7 +7,7 @@
 		<Authors>Poul Kjeldager</Authors>
 		<Description>Infeastructure Extension for EAVFW Application Building</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<RepositoryUrl>https://github.com/EAVFW/EAVFW.Extensions.SecurityModel</RepositoryUrl>
+		<RepositoryUrl>https://github.com/EAVFW/EAVFW.Extensions.Infrastructure</RepositoryUrl>
 		
 	</PropertyGroup>
 	<ItemGroup>
