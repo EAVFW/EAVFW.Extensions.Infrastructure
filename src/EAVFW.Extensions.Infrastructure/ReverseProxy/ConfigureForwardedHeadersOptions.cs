@@ -10,9 +10,9 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ConfigureForwardedHeadersOptionsExtensions
     {
-        public static IServiceCollection ConfigureForwardedHeadersOptions(this IServiceCollection services, IConfiguration configuration,string setting= "ForwardedHeaders:KnownProxies")
+        public static IServiceCollection ConfigureForwardedHeadersOptions(this IServiceCollection services,string setting= "ForwardedHeaders:KnownProxies")
         {
-            services.Configure<ForwardedHeadersOptions>(options =>
+            services.AddOptions<ForwardedHeadersOptions>().Configure<IConfiguration>((options, configuration) =>
            {
                foreach (var proxie in configuration.GetSection(setting).Get<string[]>()
                    ?.Select(IPAddress.Parse) ?? Array.Empty<IPAddress>())
