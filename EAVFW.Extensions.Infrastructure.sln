@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EAVFW.Extensions.Infrastructure", "src\EAVFW.Extensions.Infrastructure\EAVFW.Extensions.Infrastructure.csproj", "{F6D95F23-B9DE-4A19-B4B5-DEAB67D44778}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{C15642ED-9541-4835-915C-7E6923B62246}"
+	ProjectSection(SolutionItems) = preProject
+		.github\dependabot.yml = .github\dependabot.yml
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{2851BE26-56AF-4A07-A9C1-0899C1DA351A}"
 	ProjectSection(SolutionItems) = preProject
