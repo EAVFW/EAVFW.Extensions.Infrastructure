@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net6.0</TargetFrameworks>
@@ -17,10 +17,17 @@
 		<None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 	<ItemGroup>
-	    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="EAVFramework" Version="2.3.1-dev.6" />
+	    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />		
 		<PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
 		<PackageReference Include="Serilog.Extensions.Hosting" Version="7.0.0" />
 	</ItemGroup>
 
+
+    <ItemGroup Condition="$(UseEAVFromNuget) == 'false'">
+        <ProjectReference Include="$(LocalEAVFrameworkPath)\src\EAVFramework.csproj" />
+    </ItemGroup>
+    <ItemGroup Condition="$(UseEAVFromNuget) != 'false'">
+        <PackageReference Include="EAVFramework" Version="$(EAVFrameworkVersion)" />
+    </ItemGroup>
+    
 </Project>
