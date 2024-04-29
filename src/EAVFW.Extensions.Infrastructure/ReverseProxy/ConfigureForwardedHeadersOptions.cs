@@ -16,9 +16,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddOptions<ForwardedHeadersOptions>().Configure<IConfiguration>((options, configuration) =>
            {
                var knownProxies = configuration.GetSection(knownProxiesSettings).Get<string[]>()
-                   ?.Select(IPAddress.Parse);
+                   ?.Select(IPAddress.Parse) ?? Array.Empty<IPAddress>();
 
-               foreach (var proxie in knownProxies ?? Array.Empty<IPAddress>())
+               foreach (var proxie in knownProxies)
                    options.KnownProxies.Add(proxie);
 
                if (!knownProxies.Any())
