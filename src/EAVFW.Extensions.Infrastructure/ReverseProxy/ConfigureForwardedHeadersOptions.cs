@@ -24,6 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
                if (!knownProxies.Any())
                {
                    options.KnownProxies.Clear();
+                   options.KnownNetworks.Clear();
                     
                }
                
