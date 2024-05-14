@@ -207,33 +207,33 @@ namespace EAVFW.Extensions.Infrastructure
 
                 httpContext.Response.Cookies.Append("traceparent", traceId);
 
+              
+
                 // httpContext.Response.Body = new CustomStream(httpContext.Response.Body, Encoding.UTF8, "__REPLACE_TRACEID__", traceId);
 
 
-                var originalStream = httpContext.Response.Body;
-                var bufferStream = new MemoryStream();
-                httpContext.Response.Body = bufferStream;
-                await _next(httpContext);
+                //var originalStream = httpContext.Response.Body;
+                //var bufferStream = new MemoryStream();
+                //httpContext.Response.Body = bufferStream;
+                //await _next(httpContext);
 
-                bufferStream.Seek(0, SeekOrigin.Begin);
+                //bufferStream.Seek(0, SeekOrigin.Begin);
 
-                var reader = new StreamReader(bufferStream);
-                var response = await reader.ReadToEndAsync();
+                //var reader = new StreamReader(bufferStream);
+                //var response = await reader.ReadToEndAsync();
 
 
-                response = response.Replace("__REPLACE_TRACEID__", traceId);
+                //response = response.Replace("__REPLACE_TRACEID__", traceId);
 
-                // The response string is modified here
+                //// The response string is modified here
 
-                var writer = new StreamWriter(originalStream);
-                await writer.WriteAsync(response);
-                await writer.FlushAsync();
+                //using var writer = new StreamWriter(originalStream);
+                //await writer.WriteAsync(response);
+                //await writer.FlushAsync();
 
             }
-            else
-            {
-                await _next(httpContext);
-            }
+
+            await _next(httpContext);
         }
 
     }
