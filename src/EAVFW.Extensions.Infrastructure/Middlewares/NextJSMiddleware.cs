@@ -1,5 +1,11 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -161,20 +167,44 @@ namespace EAVFW.Extensions.Infrastructure
 
         public override int Read(byte[] buffer, int offset, int count) => _stream.Read(buffer, offset, count);
     }
+    public static class NextJSExtensions
+    {
+        public static IApplicationBuilder UseNextJS(this IApplicationBuilder app)
+        {
+            var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
+            // Allow unauthaccess to /_next folder.
+            // Because it is located before .UseAuthorization() 
+            // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/static-files?view=aspnetcore-5.0#static-file-authorization
+            if (Directory.Exists(env.WebRootPath + "/_next"))
+                app.Map("/_next",
+                    nested => nested.UseStaticFiles(new StaticFileOptions
+                    { FileProvider = new PhysicalFileProvider(env.WebRootPath + "/_next") }));
 
+            if (Directory.Exists(env.WebRootPath + "/public"))
+                app.UseStaticFiles(new StaticFileOptions
+                    { FileProvider = new PhysicalFileProvider(env.WebRootPath + "/public") });
+
+            return app.UseMiddleware<NextJSMiddleware>();
+        }
+    }
     public class NextJSMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly IWebHostEnvironment _environment;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<NextJSMiddleware> _logger;
         private readonly Dictionary<string, Regex> _routes;
 
-        public NextJSMiddleware(RequestDelegate next, IWebHostEnvironment environment, ILogger<NextJSMiddleware> logger)
+        public NextJSMiddleware(RequestDelegate next,
+            IWebHostEnvironment environment,
+            IConfiguration configuration, 
+            ILogger<NextJSMiddleware> logger)
         {
             _next = next;
             _environment = environment;
+            _configuration = configuration;
             _logger = logger;
-
+             
             if (environment.IsLocal())
             {
                 _routes = File.Exists($"{environment.ContentRootPath}/.next/routes-manifest.json") ?
@@ -192,6 +222,8 @@ namespace EAVFW.Extensions.Infrastructure
 
             logger.LogInformation("Intialized Routes : " + string.Join(",", _routes.Keys));
 
+           
+
         }
 
         public async Task Invoke(HttpContext httpContext)
@@ -203,7 +235,12 @@ namespace EAVFW.Extensions.Infrastructure
                 var traceId = Activity.Current?.Id ?? httpContext?.TraceIdentifier;
 
                 _logger.LogInformation("Route matched with NextJS Route: " + matched.Key);
-                httpContext.Request.Path = $"{matched.Key ?? "/index.html"}";
+
+                var auth= await httpContext.AuthenticateAsync( "eavfw");
+                if (auth.Succeeded)
+                { 
+                    httpContext.Request.Path = $"{matched.Key ?? "/index.html"}";
+                }
 
                 httpContext.Response.Cookies.Append("traceparent", traceId);
 
@@ -233,7 +270,61 @@ namespace EAVFW.Extensions.Infrastructure
 
             }
 
-            await _next(httpContext);
+            if(httpContext.Request.Path.Value == "/config/config.js")
+            {
+                var path = _environment.ContentRootFileProvider.GetFileInfo("wwwroot/config/config.js").PhysicalPath;
+                if (!File.Exists(path))
+                {
+
+                    var sb = new StringBuilder();
+                    sb.Append("window.__env = {");
+                    foreach (var values in _configuration.GetSection("EAVFramework:ExposedEnvironmentVariables").AsEnumerable())
+                    {
+                        var key = values.Key.Split(':').Last();
+
+                        if (!string.IsNullOrEmpty(values.Value))
+                        {
+                            sb.AppendLine();
+                            sb.Append($"{key}: \"{_configuration.GetValue<string>(values.Value)}\",");
+                        }
+                    }
+                    if (sb.Length > 16)
+                    {
+                        sb.Remove(sb.Length - 1, 1);
+                        sb.AppendLine();
+
+                    }
+                    sb.Append("};");
+                    sb.AppendLine("console.log(\"config.js loaded\");");
+
+                    {
+
+
+                        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+                        File.WriteAllText(path, sb.ToString());
+                    }
+                }
+
+                //httpContext.Response.ContentType = "application/javascript";
+                //httpContext.Response.StatusCode = 200;
+                //await httpContext.Response.WriteAsync(File.ReadAllText(path));
+                await httpContext.Response.SendFileAsync(path);
+                return;
+
+            }
+
+            if (httpContext.Request.Path.Value == "/favicon")
+            {
+                var path = _environment.ContentRootFileProvider.GetFileInfo("favicon").PhysicalPath;
+                if (File.Exists(path))
+                {
+                    await httpContext.Response.SendFileAsync(path);
+                }
+                httpContext.Response.StatusCode = 404;
+                return;
+            }
+
+                await _next(httpContext);
         }
 
     }

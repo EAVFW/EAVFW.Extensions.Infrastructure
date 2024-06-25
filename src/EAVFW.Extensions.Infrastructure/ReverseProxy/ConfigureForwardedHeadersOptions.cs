@@ -27,10 +27,9 @@ namespace Microsoft.Extensions.DependencyInjection
                    options.KnownNetworks.Clear();
                     
                }
-               
 
-               options.ForwardedHeaders =
-                   ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+
+               options.ForwardedHeaders = ForwardedHeaders.All;
            });
 
             return services;
