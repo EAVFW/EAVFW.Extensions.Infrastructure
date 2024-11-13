@@ -1,4 +1,4 @@
-﻿using EAVFramework.Extensions;
+using EAVFramework.Extensions;
 using Microsoft.AspNetCore.Http;
 using Serilog;
 using System;
@@ -42,24 +42,24 @@ namespace EAVFW.Extensions.Infrastructure.Middlewares
 
             if (!context.Request.Headers.ContainsKey(CorrelationIdHeader))
             {
-                context.Request.Headers.Add(CorrelationIdHeader, new[] { context.TraceIdentifier });
+                context.Request.Headers[CorrelationIdHeader] = new[] { context.TraceIdentifier };
             }
 
             if (!context.Request.Headers.ContainsKey(SessionIdHeader))
             {
-                context.Request.Headers.Add(SessionIdHeader, new[] { sessionId });
+                context.Request.Headers[SessionIdHeader] = new[] { sessionId };
             }
 
             context.Response.OnStarting(() =>
             {
                 if (!context.Response.Headers.ContainsKey(CorrelationIdHeader))
                 {
-                    context.Response.Headers.Add(CorrelationIdHeader, new[] { context.TraceIdentifier });
+                    context.Response.Headers[CorrelationIdHeader] = new[] { context.TraceIdentifier };
                 }
 
                 if (!context.Response.Headers.ContainsKey(SessionIdHeader))
                 {
-                    context.Response.Headers.Add(SessionIdHeader, new[] { sessionId });
+                    context.Response.Headers[SessionIdHeader] = new[] { sessionId };
                 }
 
                 return Task.CompletedTask;
